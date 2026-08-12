@@ -1,6 +1,6 @@
 ---
-title: "Campus greenspace and chronic absenteeism"
-subtitle: "California K-12 Public schools, 2022"
+title: "Campus Greenspace and Chronic Absenteeism"
+subtitle: "California K-12 Public Schools, 2022"
 author: "Logan Peters · [GitHub](https://github.com/loganpeters97) · [Email](mailto:loganapeters1@gmail.com)"
 date: "`r Sys.Date()`"
 output:
@@ -9,6 +9,10 @@ output:
     toc_float: true
     code_folding: show
 ---
+<style>
+.main-container { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+body { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+</style>
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
@@ -43,7 +47,7 @@ check_cds <- function(df, name) {
 }
 ```
 
-# 2.Read Data  
+# 2. Read Data  
 ### California Department of Education Outcomes, Greenspace Metrics, Census Socioeconmic Measures and Composite SES Index Creation
 
 ```{r read}
@@ -631,12 +635,16 @@ ols_results %>%
                           levels = c("Campus","500m","1000m")),
          direction = case_when(ci_high < 0 ~ "Protective (coef < 0)",
                                ci_low  > 0 ~ "Adverse (coef > 0)",
-                               TRUE ~ "No association (CI spans 0)")) %>%
+                               TRUE ~ "No association (CI spans 0)"),
+         coef_lab = if_else(direction == "No association (CI spans 0)",
+                            NA_character_, sprintf("(%.2f)", beta))) %>%
   filter(measure %in% c("NDVI", "Canopy")) %>%
   ggplot(aes(x = beta, y = scale, color = direction)) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey40") +
   geom_errorbarh(aes(xmin = ci_low, xmax = ci_high), height = 0.25, linewidth = 0.6) +
   geom_point(size = 2.5) +
+  geom_text(aes(label = coef_lab), na.rm = TRUE, show.legend = FALSE,
+            nudge_y = 0.28, size = 2.8) +
   facet_wrap(~ measure, nrow = 1) +
   scale_color_manual(values = c("Protective (coef < 0)" = "darkolivegreen",
                                 "Adverse (coef > 0)"     = "#B2182B",
@@ -765,7 +773,9 @@ ses_strat %>%
          ses_q = factor(ses_q, levels = ses_levels),
          direction = case_when(ci_high < 0 ~ "Protective (coef < 0)",
                                ci_low  > 0 ~ "Adverse (coef > 0)",
-                               TRUE ~ "No association (CI spans 0)")) %>%
+                               TRUE ~ "No association (CI spans 0)"),
+         coef_lab = if_else(direction == "No association (CI spans 0)",
+                            NA_character_, sprintf("(%.2f)", beta))) %>%
   filter(measure %in% c("NDVI","Canopy")) %>%
   mutate(Exposure = factor(Exposure, levels = c(
     "NDVI Campus","NDVI 500m","NDVI 1000m","Canopy Campus","Canopy 500m","Canopy 1000m"))) %>%
@@ -773,6 +783,8 @@ ses_strat %>%
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey40") +
   geom_errorbarh(aes(xmin = ci_low, xmax = ci_high), height = 0.25, linewidth = 0.55) +
   geom_point(size = 2) +
+  geom_text(aes(label = coef_lab), na.rm = TRUE, show.legend = FALSE,
+            nudge_y = 0.28, size = 2.6) +
   facet_wrap(~ Exposure, ncol = 3) +
   scale_color_manual(values = c("Protective (coef < 0)" = "darkolivegreen",
                                 "Adverse (coef > 0)"     = "#B2182B",
